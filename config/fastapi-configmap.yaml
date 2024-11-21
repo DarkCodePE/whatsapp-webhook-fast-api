@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: whatsapp-webhook-config
+data:
+  API_VERSION: "v21.0"
+  PORT: "8000"
+  BUSINESS_PHONE: "491306650730066"

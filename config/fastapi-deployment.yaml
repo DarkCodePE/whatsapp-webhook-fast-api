@@ -1,0 +1,79 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: whatsapp-webhook
+  labels:
+    app: whatsapp-webhook
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: whatsapp-webhook
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  template:
+    metadata:
+      labels:
+        app: whatsapp-webhook
+    spec:
+      containers:
+      - name: whatsapp-webhook
+        image: orlandogtp/whatsapp-bot:v1.1.2
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8000
+          name: http
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "200m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        readinessProbe:
+          httpGet:
+            path: /status
+            port: 8000
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          timeoutSeconds: 5
+          successThreshold: 1
+          failureThreshold: 2
+        livenessProbe:
+          httpGet:
+            path: /status
+            port: 8000
+          initialDelaySeconds: 15
+          periodSeconds: 20
+          timeoutSeconds: 5
+          successThreshold: 1
+          failureThreshold: 3
+        env:
+          - name: WEBHOOK_VERIFY_TOKEN
+            valueFrom:
+              secretKeyRef:
+                name: whatsapp-webhook-secrets
+                key: WEBHOOK_VERIFY_TOKEN
+          - name: API_TOKEN
+            valueFrom:
+              secretKeyRef:
+                name: whatsapp-webhook-secrets
+                key: API_TOKEN
+          - name: API_VERSION
+            valueFrom:
+              configMapKeyRef:
+                name: whatsapp-webhook-config
+                key: API_VERSION
+          - name: PORT
+            valueFrom:
+              configMapKeyRef:
+                name: whatsapp-webhook-config
+                key: PORT
+          - name: BUSINESS_PHONE
+            valueFrom:
+              configMapKeyRef:
+                name: whatsapp-webhook-config
+                key: BUSINESS_PHONE
